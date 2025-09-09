@@ -13,6 +13,7 @@ interface ConfirmationModalProps {
   confirmButtonText?: string;
   confirmButtonVariant?: React.ComponentProps<typeof Button>['variant'];
   icon?: React.ReactNode;
+  size?: React.ComponentProps<typeof Modal>['size'];
 }
 
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ 
@@ -23,7 +24,8 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   message,
   confirmButtonText = 'Konfirmasi',
   confirmButtonVariant = 'danger',
-  icon
+  icon,
+  size = 'sm'
 }) => {
   const handleConfirm = () => {
     onConfirm();
@@ -31,8 +33,8 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <div className="flex flex-col items-center text-center">
+    <Modal isOpen={isOpen} onClose={onClose} size={size}>
+      <div className="flex flex-col items-center text-center p-6">
         {icon || (
             <div className="bg-red-100 p-3 rounded-full">
                 <AlertTriangleIcon className="h-6 w-6 text-red-600" />

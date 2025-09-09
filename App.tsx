@@ -11,9 +11,10 @@ import { Header } from './components/Header';
 import { useAuth } from './context/AuthContext';
 import ConfigErrorDisplay from './components/ConfigErrorDisplay';
 import FilterControls from './components/FilterControls';
-import { LogOutIcon, PlusCircleIcon } from './components/ui/Icons';
+import { PlusCircleIcon } from './components/ui/Icons';
 import DivisionManagementModal from './components/UserManagement';
 import { Button } from './components/ui/Button';
+import LogoutModal from './components/LogoutModal';
 
 export default function App() {
   const { user, logout } = useAuth();
@@ -240,22 +241,12 @@ export default function App() {
             confirmButtonVariant="danger"
         />
       )}
-      {isLogoutModalOpen && (
-        <ConfirmationModal
-            isOpen={true}
-            onClose={() => setIsLogoutModalOpen(false)}
-            onConfirm={logout}
-            title="Konfirmasi Keluar"
-            message="Apakah Anda yakin ingin keluar dari sesi Anda?"
-            confirmButtonText="Keluar"
-            confirmButtonVariant="primary"
-            icon={
-              <div className="bg-blue-100 p-3 rounded-full">
-                <LogOutIcon className="h-6 w-6 text-brand-primary" />
-              </div>
-            }
-        />
-      )}
+      <LogoutModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={logout}
+        user={user}
+      />
       {isDivisionModalOpen && (
         <DivisionManagementModal
             isOpen={isDivisionModalOpen}

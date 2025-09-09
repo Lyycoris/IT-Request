@@ -88,7 +88,7 @@ const DivisionManagementModal: React.FC<DivisionManagementModalProps> = ({ isOpe
 
     return (
         <>
-            <Modal isOpen={isOpen} onClose={onClose}>
+            <Modal isOpen={isOpen} onClose={onClose} size="3xl">
                 <div className="p-6">
                     <h2 className="text-xl font-bold text-gray-800 mb-6 text-center">Manajemen Divisi</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
