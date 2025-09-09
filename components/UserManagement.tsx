@@ -98,11 +98,11 @@ const DivisionManagementModal: React.FC<DivisionManagementModalProps> = ({ isOpe
                              <form onSubmit={handleSubmit} className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Nama Divisi</label>
-                                    <Input name="divisionName" value={formData.divisionName} onChange={handleFormChange} placeholder="cth: Keuangan" required />
+                                    <Input name="divisionName" value={formData.divisionName} onChange={handleFormChange} placeholder="Keuangan" required />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
-                                    <Input name="username" value={formData.username} onChange={handleFormChange} placeholder="cth: keuangan_user" required />
+                                    <Input name="username" value={formData.username} onChange={handleFormChange} placeholder="keuangan" required />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
