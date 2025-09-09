@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IT Request</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'brand-primary': '#2563eb', // blue-600
+              'brand-secondary': '#f4f5f7',
+            },
+            animation: {
+              'subtle-pulse': 'subtle-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'spin-slow': 'spin 15s linear infinite',
+            },
+            keyframes: {
+              'subtle-pulse': {
+                '0%, 100%': { opacity: 1 },
+                '50%': { opacity: .8 },
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      /* DatePicker styles */
+      .datepicker-container {
+          position: absolute;
+          z-index: 20;
+          background-color: white;
+          border: 1px solid #e2e8f0; /* gray-200 */
+          border-radius: 0.5rem; /* rounded-lg */
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); /* shadow-md */
+          padding: 0.75rem;
+          width: 290px;
+          margin-top: 0.25rem;
+      }
+      .datepicker-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding-bottom: 0.5rem;
+      }
+      .datepicker-header button {
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 0.25rem;
+          border-radius: 9999px; /* rounded-full */
+      }
+      .datepicker-header button:hover {
+          background-color: #f1f5f9; /* gray-100 */
+      }
+      .datepicker-grid {
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
+          text-align: center;
+      }
+      .datepicker-day-name {
+          font-size: 0.75rem; /* text-xs */
+          font-weight: 500;
+          color: #64748b; /* gray-500 */
+          padding: 0.5rem 0;
+      }
+      .datepicker-day {
+          font-size: 0.875rem; /* text-sm */
+          border: none;
+          background: none;
+          cursor: pointer;
+          width: 36px;
+          height: 36px;
+          border-radius: 9999px;
+          margin: auto;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: background-color 0.2s;
+      }
+      .datepicker-day:not(.disabled):hover {
+          background-color: #f1f5f9; /* gray-100 */
+      }
+      .datepicker-day.is-today {
+          font-weight: bold;
+          color: #2563eb; /* brand-primary */
+          border: 1px solid #2563eb;
+      }
+      .datepicker-day.is-selected {
+          background-color: #2563eb; /* brand-primary */
+          color: white;
+          font-weight: bold;
+      }
+      .datepicker-day.is-other-month {
+          color: #94a3b8; /* gray-400 */
+          pointer-events: none;
+      }
+      .datepicker-footer {
+          display: flex;
+          justify-content: space-between;
+          padding-top: 0.75rem;
+          margin-top: 0.5rem;
+          border-top: 1px solid #e2e8f0; /* gray-200 */
+      }
+      .datepicker-footer button {
+          font-size: 0.875rem; /* text-sm */
+          font-weight: 500;
+          color: #2563eb; /* brand-primary */
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 0.25rem 0.5rem;
+          border-radius: 0.25rem; /* rounded */
+      }
+      .datepicker-footer button:hover {
+          background-color: #f1f5f9; /* gray-100 */
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "react/": "https://aistudiocdn.com/react@^19.1.1/"
+  }
+}
+</script>
+</head>
+  <body class="bg-gray-100 text-gray-800">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

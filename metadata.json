@@ -1,0 +1,5 @@
+{
+  "name": "IT Request",
+  "description": "Aplikasi web untuk mengajukan dan melacak permintaan TI. Data dikelola dalam simulasi Google Sheet, memungkinkan pengguna untuk mengirimkan formulir dan staf TI untuk memperbarui status permintaan dengan kode warna otomatis dan pengingat keterlambatan.",
+  "requestFramePermissions": []
+}
