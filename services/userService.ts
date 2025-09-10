@@ -1,86 +1,130 @@
 import { User } from '../types';
 
-const users: User[] = [
-  { id: 1, username: 'admin', role: 'Admin', name: 'Administrator Sistem' },
-  { id: 2, username: 'marketing', role: 'Pengguna', name: 'Divisi Marketing', division: 'Marketing' },
-  { id: 3, username: 'komersil', role: 'Pengguna', name: 'Divisi Komersil', division: 'Komersil' },
-  { id: 4, username: 'audit', role: 'Pengguna', name: 'Divisi Audit', division: 'Audit' },
-  { id: 5, username: 'general_affair', role: 'Pengguna', name: 'Divisi General Affair', division: 'General Affair' },
-];
+// URL ini harus sama dengan yang ada di sheetService untuk menunjuk ke backend Google Apps Script Anda.
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxL1lDk9ilNC5-pWx-Dgne41-YF2ebaLm8ctwPYvTEsZOHC1w3sH5IhZlryQ4r8icV-/exec';
 
-// In a real app, passwords would be hashed. Here we use a simple map for demonstration.
-const passwords: Record<string, string> = {
-  admin: 'admin123',
-  marketing: 'marketing123',
-  komersil: 'komersil123',
-  audit: 'audit123',
-  general_affair: 'generalaffair123'
-};
+// Fungsi helper untuk menangani error dari skrip, mirip dengan sheetService
+function handleScriptError(error: unknown, context: string): Error {
+  console.error(`Error during ${context}:`, error);
+  if (error instanceof Error) {
+    const lowerCaseMessage = error.message.toLowerCase();
 
-const simulateDelay = (ms: number) => new Promise(res => setTimeout(res, ms));
+    // Periksa secara spesifik untuk error header yang hilang dan berikan pesan yang sangat jelas
+    if (lowerCaseMessage.includes("header") && lowerCaseMessage.includes("tidak ditemukan di sheet pengguna")) {
+        return new Error(
+            `Kesalahan Konfigurasi Sheet "Pengguna": Pastikan sheet "Pengguna" Anda memiliki SEMUA kolom header berikut: 'id', 'name', 'division', 'role', 'username', dan 'password'. Periksa ejaan dan pastikan tidak ada spasi tambahan.`
+        );
+    }
+
+    // Pesan spesifik jika skrip backend tidak mengenali aksinya (misalnya, 'login' atau 'addUser')
+    if (lowerCaseMessage.includes("aksi tidak valid")) {
+      return new Error(
+        `Kesalahan Konfigurasi Backend: Google Apps Script Anda tidak mengenali aksi yang diminta (${context}). Ini berarti skrip backend Anda sudah usang. Harap perbarui Google Apps Script Anda dengan kode yang disediakan sebelumnya yang mencakup fungsi login dan manajemen pengguna, lalu deploy ulang.`
+      );
+    }
+
+    if (error.message.includes("Cannot read properties of null")) {
+      return new Error(
+        `Kesalahan Server: Kemungkinan nama tab di Google Sheet Anda untuk pengguna salah. Harap pastikan ada tab bernama "Pengguna".`
+      );
+    }
+    return new Error(`Koneksi ke server gagal: ${error.message}`);
+  }
+  return new Error('Koneksi ke server gagal karena kesalahan yang tidak diketahui.');
+}
+
+// Fungsi helper untuk menangani permintaan POST ke skrip
+async function postToAction(action: string, body: object): Promise<any> {
+  try {
+    const response = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8',
+      },
+      body: JSON.stringify({ action, ...body }),
+      mode: 'cors',
+    });
+    
+    const result = await response.json();
+
+    if (!result.success) {
+      throw new Error(result.message || 'Terjadi kesalahan pada skrip.');
+    }
+    
+    return result;
+
+  } catch (error) {
+    throw handleScriptError(error, `action '${action}'`);
+  }
+}
 
 export const userService = {
   async login(username: string, password_input: string): Promise<User | null> {
-    await simulateDelay(500);
-    const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
-    if (user && passwords[user.username] === password_input) {
-      return user;
+    try {
+      const result = await postToAction('login', { username, password: password_input });
+      // Skrip harus mengembalikan objek pengguna jika login berhasil
+      if (result.user) {
+        return {
+            id: Number(result.user.id),
+            username: result.user.username,
+            role: result.user.role,
+            name: result.user.name,
+            division: result.user.division || undefined,
+        };
+      }
+      return null;
+    } catch (error) {
+      // Jika login gagal karena kesalahan skrip, error akan dilempar oleh postToAction
+      // Jika skrip berjalan tetapi tidak menemukan pengguna, ia tidak akan error tetapi result.user akan kosong
+      // Jadi kita menangani error skrip di sini dan null/undefined user di komponen UI
+      console.error("Login gagal:", error);
+      throw error; // Lemparkan kembali error yang sudah diformat agar UI bisa menampilkannya
     }
-    return null;
   },
 
   async fetchUsers(): Promise<User[]> {
-    await simulateDelay(300);
-    // Return all users except the admin itself, sorted by name, with their passwords
-    const regularUsers = users
-      .filter(u => u.role !== 'Admin')
-      .map(u => ({
-        ...u,
-        password: passwords[u.username], // Add password here
-      }));
-      
-    return regularUsers.sort((a, b) => a.name.localeCompare(b.name));
+    try {
+        const response = await fetch(`${SCRIPT_URL}?action=getUsers`, { 
+            method: 'GET', 
+            mode: 'cors' 
+        });
+        if (!response.ok) {
+            throw new Error(`Respons jaringan tidak baik: ${response.statusText}`);
+        }
+        const result = await response.json();
+        if (!result.success) {
+            throw new Error(result.message || 'Gagal mengambil data pengguna dari skrip.');
+        }
+        
+        const rawUsers: any[] = result.data || [];
+        return rawUsers.map(u => ({
+            id: Number(u.id),
+            username: u.username,
+            role: u.role,
+            name: u.name,
+            division: u.division || undefined,
+            password: u.password // Diperlukan oleh komponen
+        }));
+    } catch (error) {
+        throw handleScriptError(error, 'fetchUsers');
+    }
   },
 
   async addUser(newUserData: Omit<User, 'id' | 'role'> & { password: string }): Promise<User> {
-    await simulateDelay(500);
-
-    if (users.some(u => u.username.toLowerCase() === newUserData.username.toLowerCase())) {
-      throw new Error('Username sudah ada. Harap gunakan username lain.');
-    }
-    if (!newUserData.password || newUserData.password.length < 6) {
-        throw new Error('Password harus terdiri dari minimal 6 karakter.');
-    }
-
-    const newId = users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1;
-    const newUser: User = {
-      id: newId,
-      username: newUserData.username,
-      name: newUserData.name,
-      division: newUserData.division,
-      role: 'Pengguna',
+    const result = await postToAction('addUser', { data: newUserData });
+    // Skrip harus mengembalikan pengguna yang baru dibuat, termasuk ID barunya.
+    return {
+        id: Number(result.data.id),
+        username: result.data.username,
+        name: result.data.name,
+        division: result.data.division,
+        role: 'Pengguna', // Asumsikan addUser selalu membuat peran 'Pengguna'
+        password: result.data.password,
     };
-
-    users.push(newUser);
-    passwords[newUser.username] = newUserData.password;
-    
-    return newUser;
   },
 
   async deleteUser(userId: number): Promise<boolean> {
-    await simulateDelay(400);
-    const userIndex = users.findIndex(u => u.id === userId);
-    if (userIndex === -1) {
-      throw new Error('Pengguna tidak ditemukan.');
-    }
-    if (users[userIndex].role === 'Admin') {
-      throw new Error('Akun admin tidak dapat dihapus.');
-    }
-    
-    const userToDelete = users[userIndex];
-    delete passwords[userToDelete.username];
-    users.splice(userIndex, 1);
-    
+    await postToAction('deleteUser', { id: userId });
     return true;
   },
 };

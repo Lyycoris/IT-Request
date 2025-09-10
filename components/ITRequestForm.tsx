@@ -49,6 +49,19 @@ const ITRequestForm: React.FC<ITRequestFormProps> = ({ onSubmit, divisionOptions
       alert('Harap isi semua kolom yang wajib diisi.');
       return;
     }
+
+    // Validasi untuk Admin: Periksa apakah divisi yang dimasukkan sudah terdaftar.
+    if (user?.role === 'Admin' && !divisionOptions.some(opt => opt.toLowerCase() === formData.division.trim().toLowerCase())) {
+        const confirmSubmission = window.confirm(
+            `Divisi "${formData.division.trim()}" tidak terdaftar.\n\n` +
+            `Cara yang disarankan adalah membuat akun untuk divisi ini terlebih dahulu melalui menu "Manajemen Divisi".\n\n` +
+            `Apakah Anda ingin tetap mengirimkan permintaan ini? Permintaan akan dicatat, tetapi tidak akan ada akun pengguna yang terkait.`
+        );
+        if (!confirmSubmission) {
+            return; // Batalkan pengiriman jika pengguna menekan "Batal"
+        }
+    }
+
     setIsSubmitting(true);
     await onSubmit(formData);
     // Reset hanya masalah dan kategori setelah pengiriman

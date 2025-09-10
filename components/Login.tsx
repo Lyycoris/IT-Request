@@ -24,7 +24,8 @@ const Login: React.FC = () => {
         setError('Nama pengguna atau kata sandi tidak valid.');
       }
     } catch (err) {
-      setError('Terjadi kesalahan tak terduga. Silakan coba lagi.');
+      const errorMessage = err instanceof Error ? err.message : 'Login gagal karena kesalahan yang tidak diketahui.';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -84,9 +85,9 @@ const Login: React.FC = () => {
             </div>
 
             {error && (
-              <div className="flex items-center text-sm text-red-600 bg-red-50 p-3 rounded-md mb-6">
-                <AlertTriangleIcon className="h-4 w-4 mr-2"/>
-                {error}
+              <div className="flex items-start text-sm text-red-600 bg-red-50 p-3 rounded-md mb-6">
+                <AlertTriangleIcon className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0"/>
+                <span>{error}</span>
               </div>
             )}
 

@@ -2,7 +2,7 @@ import { ITRequest, Status, NewRequestData } from '../types';
 
 // TODO: GANTI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA
 // Ini adalah URL yang Anda dapatkan setelah men-deploy skrip di Bagian 1.
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzbH_PHMLBHNNzuqaIURyGOsmbURWhlG1uGIqIsl3A0cha79DpuLU00CQ2rKTD25qm/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxL1lDk9ilNC5-pWx-Dgne41-YF2ebaLm8ctwPYvTEsZOHC1w3sH5IhZlryQ4r8icV-/exec';
 
 // Fungsi helper untuk menangani error spesifik dari skrip Google
 function handleScriptError(error: unknown, context: string): Error {
@@ -11,7 +11,7 @@ function handleScriptError(error: unknown, context: string): Error {
     // Cek pesan error yang umum terjadi jika nama sheet salah
     if (error.message.includes("Cannot read properties of null")) {
       return new Error(
-        `Kesalahan Server: Kemungkinan nama tab di Google Sheet Anda salah. Harap pastikan nama tab adalah "Requests" (huruf besar/kecil berpengaruh).`
+        `Kesalahan Konfigurasi Backend: Nama sheet yang dikonfigurasi di Google Apps Script Anda (variabel REQUEST_SHEET_NAME) tidak cocok dengan nama tab yang sebenarnya di Google Sheet Anda. Harap periksa keduanya.`
       );
     }
     return new Error(`Koneksi ke server gagal: ${error.message}`);
