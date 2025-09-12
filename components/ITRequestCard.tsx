@@ -9,7 +9,7 @@ import { useAuth } from '../context/AuthContext';
 
 interface ITRequestCardProps {
   request: ITRequest;
-  onUpdateRequest: (id: number, status: Status, pic?: string, notes?: string) => void;
+  onUpdateRequest: (id: number, updates: Partial<ITRequest>) => void;
   onDeleteRequest: (id: number) => void;
 }
 
@@ -38,31 +38,53 @@ const statusConfig = {
 const ITRequestCard: React.FC<ITRequestCardProps> = ({ request, onUpdateRequest, onDeleteRequest }) => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'Admin';
+  const isUser = user?.role === 'Pengguna';
+
   const [isEditing, setIsEditing] = useState(false);
+
+  // Admin editable state
   const [editableStatus, setEditableStatus] = useState<Status>(request.status);
   const [editablePic, setEditablePic] = useState(request.pic);
   const [editableNotes, setEditableNotes] = useState(request.notes || '');
+  
+  // User editable state
+  const [editableName, setEditableName] = useState(request.name);
+  const [editableProblem, setEditableProblem] = useState(request.problem);
+  const [editableCategory, setEditableCategory] = useState(request.category);
 
   const isOverdue = request.status === Status.Open && (new Date().getTime() - new Date(request.timestamp).getTime()) > 2 * 24 * 60 * 60 * 1000;
   
   const currentStatusConfig = statusConfig[request.status] || statusConfig[Status.Open];
 
   const handleSave = () => {
-    onUpdateRequest(request.id, editableStatus, editablePic, editableNotes);
+    if (isAdmin) {
+        onUpdateRequest(request.id, { status: editableStatus, pic: editablePic, notes: editableNotes });
+    } else {
+        onUpdateRequest(request.id, { name: editableName, problem: editableProblem, category: editableCategory });
+    }
     setIsEditing(false);
   };
   
   const handleCancel = () => {
+    // Reset admin state
     setEditableStatus(request.status);
     setEditablePic(request.pic);
     setEditableNotes(request.notes || '');
+    // Reset user state
+    setEditableName(request.name);
+    setEditableProblem(request.problem);
+    setEditableCategory(request.category);
     setIsEditing(false);
   };
   
   useEffect(() => {
+    // Reset all editable states when request data changes
     setEditableStatus(request.status);
     setEditablePic(request.pic);
     setEditableNotes(request.notes || '');
+    setEditableName(request.name);
+    setEditableProblem(request.problem);
+    setEditableCategory(request.category);
   }, [request]);
 
   const InfoPill: React.FC<{ icon: React.ReactNode; label: string; value: string }> = ({ icon, label, value }) => (
@@ -71,6 +93,9 @@ const ITRequestCard: React.FC<ITRequestCardProps> = ({ request, onUpdateRequest,
         <span className="font-medium mr-1">{label}:</span> {value}
     </div>
   );
+
+  // Determine if the current user can edit this request
+  const canEdit = isAdmin || (isUser && user?.division === request.division && request.status === Status.Open);
 
   return (
     <div className={`relative bg-white shadow-md rounded-lg overflow-hidden border-l-4 ${currentStatusConfig.borderColor}`}>
@@ -86,15 +111,15 @@ const ITRequestCard: React.FC<ITRequestCardProps> = ({ request, onUpdateRequest,
             </div>
           </div>
           <div className="flex items-center space-x-1">
+            {canEdit && !isEditing && (
+              <button onClick={() => setIsEditing(true)} className="p-2 text-gray-500 hover:text-brand-primary hover:bg-gray-100 rounded-full transition" aria-label="Edit Permintaan">
+                <EditIcon className="w-5 h-5" />
+              </button>
+            )}
             {isAdmin && !isEditing && (
-              <>
-                <button onClick={() => setIsEditing(true)} className="p-2 text-gray-500 hover:text-brand-primary hover:bg-gray-100 rounded-full transition" aria-label="Edit Permintaan">
-                  <EditIcon className="w-5 h-5" />
-                </button>
                 <button onClick={() => onDeleteRequest(request.id)} className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition" aria-label="Hapus Permintaan">
                     <Trash2Icon className="w-5 h-5" />
                 </button>
-              </>
             )}
           </div>
         </div>
@@ -130,20 +155,46 @@ const ITRequestCard: React.FC<ITRequestCardProps> = ({ request, onUpdateRequest,
         {isEditing && (
           <div className="mt-4 pt-4 border-t border-gray-200 space-y-4 bg-gray-50 p-4 rounded-md">
             <h4 className="font-semibold text-gray-700">Edit Permintaan #{request.id}</h4>
-             <div>
-              <label htmlFor={`status-${request.id}`} className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-              <Select id={`status-${request.id}`} value={editableStatus} onChange={(e) => setEditableStatus(e.target.value as Status)}>
-                {Object.values(Status).map(s => <option key={s} value={s}>{s}</option>)}
-              </Select>
-            </div>
-            <div>
-              <label htmlFor={`pic-${request.id}`} className="block text-sm font-medium text-gray-700 mb-1">PIC yang Ditugaskan</label>
-              <Input id={`pic-${request.id}`} type="text" value={editablePic} onChange={(e) => setEditablePic(e.target.value)} />
-            </div>
-            <div>
-              <label htmlFor={`notes-${request.id}`} className="block text-sm font-medium text-gray-700 mb-1">Catatan</label>
-              <Textarea id={`notes-${request.id}`} value={editableNotes} onChange={(e) => setEditableNotes(e.target.value)} rows={3}/>
-            </div>
+            
+            {isAdmin ? (
+              <>
+                <div>
+                  <label htmlFor={`status-${request.id}`} className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <Select id={`status-${request.id}`} value={editableStatus} onChange={(e) => setEditableStatus(e.target.value as Status)}>
+                    {Object.values(Status).map(s => <option key={s} value={s}>{s}</option>)}
+                  </Select>
+                </div>
+                <div>
+                  <label htmlFor={`pic-${request.id}`} className="block text-sm font-medium text-gray-700 mb-1">PIC yang Ditugaskan</label>
+                  <Input id={`pic-${request.id}`} type="text" value={editablePic} onChange={(e) => setEditablePic(e.target.value)} />
+                </div>
+                <div>
+                  <label htmlFor={`notes-${request.id}`} className="block text-sm font-medium text-gray-700 mb-1">Catatan</label>
+                  <Textarea id={`notes-${request.id}`} value={editableNotes} onChange={(e) => setEditableNotes(e.target.value)} rows={3}/>
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                    <label htmlFor={`name-${request.id}`} className="block text-sm font-medium text-gray-700 mb-1">Nama Pengguna</label>
+                    <Input id={`name-${request.id}`} name="name" value={editableName} onChange={(e) => setEditableName(e.target.value)} required />
+                </div>
+                <div>
+                    <label htmlFor={`category-${request.id}`} className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                    <Select id={`category-${request.id}`} name="category" value={editableCategory} onChange={(e) => setEditableCategory(e.target.value as ITRequest['category'])} required>
+                        <option>Perangkat Lunak</option>
+                        <option>Perangkat Keras</option>
+                        <option>Jaringan</option>
+                        <option>Lainnya</option>
+                    </Select>
+                </div>
+                <div>
+                    <label htmlFor={`problem-${request.id}`} className="block text-sm font-medium text-gray-700 mb-1">Jelaskan Masalahnya</label>
+                    <Textarea id={`problem-${request.id}`} name="problem" value={editableProblem} onChange={(e) => setEditableProblem(e.target.value)} rows={4} required />
+                </div>
+              </>
+            )}
+
             <div className="flex justify-end space-x-2">
               <Button onClick={handleCancel} variant="secondary">Batal</Button>
               <Button onClick={handleSave}>Simpan Perubahan</Button>

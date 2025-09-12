@@ -1,7 +1,7 @@
 import { User } from '../types';
 
 // URL ini harus sama dengan yang ada di sheetService untuk menunjuk ke backend Google Apps Script Anda.
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxL1lDk9ilNC5-pWx-Dgne41-YF2ebaLm8ctwPYvTEsZOHC1w3sH5IhZlryQ4r8icV-/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwu-aDVWUGsW9QVt2WeTgK2jcioDEawBSK8JiAkoT_7JIrmifbps_KYhYFCC7vHz7RY/exec';
 
 // Fungsi helper untuk menangani error dari skrip, mirip dengan sheetService
 function handleScriptError(error: unknown, context: string): Error {

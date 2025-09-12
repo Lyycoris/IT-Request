@@ -2,7 +2,7 @@ import { ITRequest, Status, NewRequestData } from '../types';
 
 // TODO: GANTI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA
 // Ini adalah URL yang Anda dapatkan setelah men-deploy skrip di Bagian 1.
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxL1lDk9ilNC5-pWx-Dgne41-YF2ebaLm8ctwPYvTEsZOHC1w3sH5IhZlryQ4r8icV-/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwu-aDVWUGsW9QVt2WeTgK2jcioDEawBSK8JiAkoT_7JIrmifbps_KYhYFCC7vHz7RY/exec';
 
 // Fungsi helper untuk menangani error spesifik dari skrip Google
 function handleScriptError(error: unknown, context: string): Error {
@@ -118,7 +118,7 @@ export const sheetService = {
     };
   },
 
-  async updateRequest(id: number, updates: Partial<{ status: Status; pic: string; notes: string; }>): Promise<ITRequest | null> {
+  async updateRequest(id: number, updates: Partial<ITRequest>): Promise<ITRequest | null> {
     await postToAction('updateRequest', { id: id, data: updates });
     // Sama seperti add, kita mengandalkan penyegaran data untuk melihat pembaruan.
     // Mengembalikan null karena kita tidak mendapatkan objek yang diperbarui kembali.

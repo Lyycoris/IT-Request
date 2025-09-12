@@ -6,7 +6,7 @@ import { InfoIcon, SearchIcon } from './ui/Icons';
 
 interface ITRequestLogProps {
   requests: ITRequest[];
-  onUpdateRequest: (id: number, status: Status, pic?: string, notes?: string) => void;
+  onUpdateRequest: (id: number, updates: Partial<ITRequest>) => void;
   onDeleteRequest: (id: number) => void;
   loading: boolean;
   hasActiveFilters: boolean; // New prop

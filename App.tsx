@@ -11,10 +11,11 @@ import { Header } from './components/Header';
 import { useAuth } from './context/AuthContext';
 import ConfigErrorDisplay from './components/ConfigErrorDisplay';
 import FilterControls from './components/FilterControls';
-import { PlusCircleIcon } from './components/ui/Icons';
+import { PlusCircleIcon, BarChart2Icon } from './components/ui/Icons';
 import DivisionManagementModal from './components/UserManagement';
 import { Button } from './components/ui/Button';
 import LogoutModal from './components/LogoutModal';
+import DashboardModal from './components/DashboardModal';
 
 export default function App() {
   const { user, logout } = useAuth();
@@ -25,6 +26,7 @@ export default function App() {
   const [configError, setConfigError] = useState<string | null>(null);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isDivisionModalOpen, setIsDivisionModalOpen] = useState(false);
+  const [isDashboardModalOpen, setIsDashboardModalOpen] = useState(false);
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<Status | 'All'>('All');
@@ -88,16 +90,23 @@ export default function App() {
     }
   };
 
-  const handleUpdateRequest = async (id: number, status: Status, pic?: string, notes?: string) => {
-    if (user?.role !== 'Admin') {
-      showToast('Anda tidak memiliki izin untuk memperbarui permintaan.', 'error');
-      return;
-    }
+  const handleUpdateRequest = async (id: number, updates: Partial<ITRequest>) => {
+    const originalRequests = [...requests];
+
+    // Optimistically update the UI for immediate feedback
+    setRequests(prevRequests =>
+      prevRequests.map(req =>
+        req.id === id ? { ...req, ...updates } : req
+      )
+    );
+
     try {
-      await sheetService.updateRequest(id, { status, pic, notes });
+      await sheetService.updateRequest(id, updates);
       showToast('Permintaan berhasil diperbarui!', 'success');
-      fetchRequests();
+      // No refetch on success because the UI is already updated.
     } catch (error) {
+      // If the update fails, revert the UI to its original state.
+      setRequests(originalRequests);
       const errorMessage = error instanceof Error ? error.message : 'Gagal memperbarui permintaan.';
       console.error("Error updating request:", error);
       showToast(errorMessage, 'error');
@@ -193,14 +202,24 @@ export default function App() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1 space-y-4">
             {user.role === 'Admin' && 
-              <Button 
-                onClick={() => setIsDivisionModalOpen(true)} 
-                className="w-full"
-                variant="secondary"
-              >
-                  <PlusCircleIcon className="w-5 h-5 mr-2"/>
-                  Manajemen Divisi
-              </Button>
+                <div className="grid grid-cols-2 gap-4">
+                    <Button 
+                      onClick={() => setIsDashboardModalOpen(true)} 
+                      className="w-full"
+                      variant="secondary"
+                    >
+                        <BarChart2Icon className="w-5 h-5 mr-2"/>
+                        Dashboard
+                    </Button>
+                    <Button 
+                        onClick={() => setIsDivisionModalOpen(true)} 
+                        className="w-full"
+                        variant="secondary"
+                    >
+                        <PlusCircleIcon className="w-5 h-5 mr-2"/>
+                        Manajemen
+                    </Button>
+                </div>
             }
             <ITRequestForm onSubmit={handleAddRequest} divisionOptions={divisionOptions} />
           </div>
@@ -253,6 +272,13 @@ export default function App() {
             onClose={() => setIsDivisionModalOpen(false)}
             showToast={showToast}
             onUpdate={fetchDivisionOptions}
+        />
+      )}
+      {isDashboardModalOpen && (
+        <DashboardModal
+            isOpen={isDashboardModalOpen}
+            onClose={() => setIsDashboardModalOpen(false)}
+            requests={requests}
         />
       )}
     </div>
